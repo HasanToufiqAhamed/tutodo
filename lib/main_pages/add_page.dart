@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/src/provider.dart';
 import 'package:tutodo/components/my_colors.dart';
-import 'package:tutodo/dialogue/select_date_dialogue.dart';
+import 'package:tutodo/database/DBHelper.dart';
+import 'package:tutodo/model/tasks.dart';
+import 'package:tutodo/provider/offline_cart_provider.dart';
 
 class AddPage extends StatefulWidget {
   const AddPage({Key? key}) : super(key: key);
@@ -12,7 +17,9 @@ class AddPage extends StatefulWidget {
 class _AddPageState extends State<AddPage> {
   TextEditingController title = TextEditingController();
   int selectedIndex = 0;
-  DateTime selectedDate = DateTime.now();
+  DateTime? selectedDate;
+  bool selectDate = false;
+  var dbHelper = DBHelper();
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +32,12 @@ class _AddPageState extends State<AddPage> {
                 borderRadius: BorderRadius.circular(15),
               ),
               elevation: 7,
-              onPressed: () {},
+              onPressed: () {
+                FocusScope.of(context).unfocus();
+              },
+              child: const Icon(
+                Icons.check,
+              ),
             )
           : null,
       body: SafeArea(
@@ -42,31 +54,34 @@ class _AddPageState extends State<AddPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Text(
+                    const Text(
                       'Add new',
                       style: TextStyle(
                         fontSize: 47,
                       ),
                     ),
                     TextFormField(
+                      controller: title,
                       decoration: InputDecoration(
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: MyColors.mainColor,
-                              width: 2.0,
-                            ),
+                        enabledBorder: const UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: MyColors.mainColor,
+                            width: 2.0,
                           ),
-                          focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: MyColors.mainColor,
-                              width: 4.0,
-                            ),
+                        ),
+                        focusedBorder: const UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: MyColors.mainColor,
+                            width: 4.0,
                           ),
-                          hintText: 'Enter Task',
-                          hintStyle: TextStyle(
-                            color: MyColors.mainText.withOpacity(0.21),
-                          )),
-                      style: TextStyle(
+                        ),
+                        hintText: 'Enter Task',
+                        hintStyle: TextStyle(
+                          color: MyColors.mainText.withOpacity(0.21),
+                        ),
+                      ),
+                      textCapitalization: TextCapitalization.sentences,
+                      style: const TextStyle(
                         fontSize: 32,
                       ),
                       maxLines: 2,
@@ -75,14 +90,14 @@ class _AddPageState extends State<AddPage> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           'WHEN',
                           style: TextStyle(
                             fontSize: 15,
                             color: MyColors.dexText,
                           ),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 20,
                         ),
                         Container(
@@ -91,16 +106,18 @@ class _AddPageState extends State<AddPage> {
                             children: [
                               Expanded(
                                 child: GestureDetector(
-                                  onTap: () {
+                                  onTap: () async {
                                     setState(() {
                                       selectedIndex = 1;
+                                      selectDate = false;
+                                      FocusScope.of(context).unfocus();
                                     });
                                   },
                                   child: Container(
                                     color: MyColors.home_background
                                         .withOpacity(0.25),
                                     alignment: Alignment.center,
-                                    padding: EdgeInsets.symmetric(
+                                    padding: const EdgeInsets.symmetric(
                                       vertical: 20,
                                     ),
                                     child: Text(
@@ -124,13 +141,15 @@ class _AddPageState extends State<AddPage> {
                                   onTap: () {
                                     setState(() {
                                       selectedIndex = 2;
+                                      selectDate = false;
+                                      FocusScope.of(context).unfocus();
                                     });
                                   },
                                   child: Container(
                                     color: MyColors.home_background
                                         .withOpacity(0.25),
                                     alignment: Alignment.center,
-                                    padding: EdgeInsets.symmetric(
+                                    padding: const EdgeInsets.symmetric(
                                       vertical: 20,
                                     ),
                                     child: Text(
@@ -152,47 +171,69 @@ class _AddPageState extends State<AddPage> {
                               Expanded(
                                 child: GestureDetector(
                                   onTap: () {
-                                    /*setState(() {
-                                      selectedIndex=3;
-                                    });*/
-                                    /*showModalBottomSheet(
-                                      isScrollControlled: true,
-                                      backgroundColor: Colors.white,
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.vertical(
-                                              top: Radius.circular(20))),
-                                      context: context,
-                                      builder: (BuildContext context) =>
-                                          selectDateDialogue(),
-                                    );*/
-                                    showDatePicker(
-                                        context: context,
-                                        initialDate: selectedDate,
-                                        firstDate: DateTime(2010),
-                                        lastDate: DateTime(2025),
-                                        helpText: "SELECT BOOKING DATE",
-                                        cancelText: "NOT NOW",
-                                        confirmText: "BOOK NOW"
+                                    FocusScope.of(context).unfocus();
+                                    DatePicker.showDatePicker(
+                                      context,
+                                      showTitleActions: true,
+                                      minTime: DateTime.now(),
+                                      theme: DatePickerTheme(
+                                        headerColor: MyColors.home_background
+                                            .withOpacity(0.25),
+                                        backgroundColor: Colors.white,
+                                        itemStyle: const TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                        ),
+                                        doneStyle: const TextStyle(
+                                          color: MyColors.mainColor,
+                                          fontSize: 16,
+                                        ),
+                                        cancelStyle: TextStyle(
+                                          color: MyColors.mainText
+                                              .withOpacity(0.21),
+                                          fontSize: 14,
+                                        ),
+                                        itemHeight: 30,
+                                        titleHeight: 60,
+                                      ),
+                                      onChanged: (date) {
+                                        print('change $date in time zone ' +
+                                            date.timeZoneOffset.inHours
+                                                .toString());
+                                      },
+                                      onConfirm: (date) {
+                                        print('confirm $date');
+                                        setState(() {
+                                          selectedDate = date;
+                                          selectDate = true;
+                                          selectedIndex = 3;
+                                        });
+                                      },
+                                      currentTime: DateTime.now(),
+                                      locale: LocaleType.en,
                                     );
                                   },
                                   child: Container(
                                     color: MyColors.home_background
                                         .withOpacity(0.25),
                                     alignment: Alignment.center,
-                                    padding: EdgeInsets.symmetric(
+                                    padding: const EdgeInsets.symmetric(
                                       vertical: 20,
                                     ),
                                     child: Text(
-                                      'Select Date',
+                                      selectDate
+                                          ? DateFormat('dd MMM yyyy')
+                                              .format(selectedDate!)
+                                          : 'Select Date',
                                       style: TextStyle(
                                         fontSize: 15,
-                                        color: selectedIndex == 3
+                                        color: selectDate
                                             ? MyColors.mainColor
                                             : MyColors.mainText
                                                 .withOpacity(0.67),
-                                        fontWeight: selectedIndex == 3
-                                            ? FontWeight.bold
-                                            : null,
+                                        fontWeight:
+                                            selectDate ? FontWeight.bold : null,
                                       ),
                                     ),
                                   ),
@@ -209,18 +250,23 @@ class _AddPageState extends State<AddPage> {
             ),
             keyboardIsOpened
                 ? SizedBox()
-                : Container(
-                    alignment: Alignment.center,
-                    padding: EdgeInsets.symmetric(
-                      vertical: 30,
-                    ),
-                    width: double.maxFinite,
-                    color: MyColors.mainColor,
-                    child: Text(
-                      'Add Task',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 21,
+                : GestureDetector(
+                    onTap: () {
+                      addTasks();
+                    },
+                    child: Container(
+                      alignment: Alignment.center,
+                      padding: EdgeInsets.symmetric(
+                        vertical: 30,
+                      ),
+                      width: double.maxFinite,
+                      color: MyColors.mainColor,
+                      child: Text(
+                        'Add Task',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 21,
+                        ),
                       ),
                     ),
                   )
@@ -228,5 +274,26 @@ class _AddPageState extends State<AddPage> {
         ),
       ),
     );
+  }
+
+  void addTasks() {
+    if (title.text.isEmpty) {
+      print('Error: empty title');
+    } else if (selectedIndex == 0 && selectDate == false) {
+      print('Error: select date');
+    } else {
+      DateTime? finalDate;
+      if (selectedIndex == 1) {
+        finalDate = DateTime.now();
+      } else if (selectedIndex == 2) {
+        finalDate = DateTime.now().add(Duration(days: 1));
+      } else {
+        finalDate = selectedDate;
+      }
+      Tasks cp = Tasks(active: 0, time: '$finalDate', title: title.text);
+      dbHelper.save(cp);
+      context.read<OfflineCartProvider>().getAllProduct();
+      Navigator.pop(context);
+    }
   }
 }
