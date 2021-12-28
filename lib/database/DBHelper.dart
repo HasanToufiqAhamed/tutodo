@@ -27,13 +27,13 @@ class DBHelper {
 
   _onCreate(Database db, int version) async {
     await db.execute(
-      "CREATE TABLE $TABLE (id TEXT PRIMARY KEY, title TEXT, time TEXT, active INTEGER)",
+      "CREATE TABLE $TABLE (id integer primary key autoincrement, title TEXT, time TEXT, active INTEGER)",
     );
   }
 
   Future<Tasks> save(Tasks Tasks) async {
     var dbClient = await db;
-    Tasks.id = await dbClient.insert(TABLE, Tasks.toMap()).toString();
+    Tasks.id = await dbClient.insert(TABLE, Tasks.toMap());
     return Tasks;
   }
 

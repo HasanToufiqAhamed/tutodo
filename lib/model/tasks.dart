@@ -7,7 +7,7 @@ class Tasks {
   });
 
   int? active;
-  String? id;
+  int? id;
   String? title;
   String? time;
 

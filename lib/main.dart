@@ -80,7 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               icon: Icon(
                 Icons.arrow_right,
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.white,
               ),
             ),
           )

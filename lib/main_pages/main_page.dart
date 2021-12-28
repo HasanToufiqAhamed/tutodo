@@ -24,6 +24,8 @@ class _MainPageState extends State<MainPage> {
     final offlineCart = context.watch<OfflineCartProvider>();
 
     List<Tasks> finalTask = offlineCart.cart;
+    finalTask.sort((a,b) => a.time!.compareTo(b.time!));
+    finalTask.sort((a,b) => a.active!.compareTo(b.active!));
 
     return Scaffold(
       body: SafeArea(
@@ -211,22 +213,23 @@ class _MainPageState extends State<MainPage> {
                                             onTap: () {
                                               dbHelper.updateProduct(
                                                 Tasks(
-                                                    title:
-                                                        finalTask[index].title,
-                                                    time: finalTask[index].time.toString(),
-                                                    active: finalTask[index]
-                                                                .active ==
-                                                            1
-                                                        ? 0
-                                                        : 1,
-                                                    id: finalTask[index].id),
+                                                  title: finalTask[index].title,
+                                                  time: '${finalTask[index]
+                                                      .time}',
+                                                  active:
+                                                      finalTask[index].active ==
+                                                              1
+                                                          ? 0
+                                                          : 1,
+                                                  id: finalTask[index].id,
+                                                ),
                                               );
                                               context
                                                   .read<OfflineCartProvider>()
                                                   .getAllProduct();
                                             },
                                             title: Text(
-                                              '${finalTask[index].title}',
+                                              '  ${finalTask[index].title}   ',
                                               style: TextStyle(
                                                 decoration:
                                                     finalTask[index].active == 0
